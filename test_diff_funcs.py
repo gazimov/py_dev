@@ -45,7 +45,7 @@ def axis_dih(func, dim, x0, bounds, args=None, eps=0.001):
     x[dim] = (y1 + y2)/2
     return x
         
-def minimize(func, dims, x0, bounds, args=None, eps=0.0000001):
+def minimize(func, x0, bounds, args=None, eps=0.0000001):
     """ Реализует метод поиска минимума покоординатным спуском.
     
     Keyword args:
@@ -74,7 +74,7 @@ def minimize(func, dims, x0, bounds, args=None, eps=0.0000001):
     while abs(f0 - ff) > eps:
         f0 = ff
         cnt += 1
-        for dim in range(dims):
+        for dim in range(len(x0)):
             x = axis_dih(func, dim, x, bounds[dim], args=args)
             xs.append(x)
         if args:
@@ -172,7 +172,6 @@ def main():
     init = fncs[ind]['init']
     
     args_min, min_func, path, cnt  = minimize(func=func, 
-                                              dims=2, 
                                               x0=init, 
                                               bounds = bounds,
                                               args = args)    
