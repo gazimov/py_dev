@@ -164,17 +164,11 @@ def main():
     if ind > len(fncs)-1:
         print("Превышен индекс, доступны от {0} до {1}".format(0, len(fncs)-1))
         return -1
-  
-
-    func = fncs[ind]['func']
-    bounds = fncs[ind]['bnds']
-    args = fncs[ind]['args']
-    init = fncs[ind]['init']
     
-    args_min, min_func, path, cnt  = minimize(func=func, 
-                                              x0=init, 
-                                              bounds = bounds,
-                                              args = args)    
+    args_min, min_func, path, cnt  = minimize(func = fncs[ind]['func'], 
+                                              x0 = fncs[ind]['init'], 
+                                              bounds = fncs[ind]['bnds'],
+                                              args = fncs[ind]['args'])    
     
     print("min = {val}, argmin(f) = {args}, iterations = {i}".format(val=min_func,
                                                                      args=args_min, 
