@@ -24,21 +24,15 @@ def axis_dih(func, dim, x0, bounds, cntr, args=None, eps=0.001):
     """
     y1, y2 = bounds
     x = x0[:]
+    if not args:
+        args = {}
     while abs(y1-y2)>2*eps:
         cntr += 1
         s = (y1+y2)/2
         x[dim] = s - eps
-        if args:
-            f1 = func(*x, **args)
-        else:
-            f1 = func(*x)
+        f1 = func(*x, **args)
         x[dim] = s + eps
-        
-        if args:
-            f2 = func(*x, **args)
-        else:
-            f2 = func(*x)
-
+        f2 = func(*x, **args)
         if (f1>f2):
             y1 = s
         else:
@@ -64,10 +58,9 @@ def minimize(func, x0, bounds, args=None, eps=0.0000001):
     размером dims, траектория поиска, и количество итераций
     """
     cnt = 0
-    if args:
-        f0 = func(*x0, **args)
-    else:
-        f0 = func(*x0)
+    if not args:
+        args = {}
+    f0 = func(*x0, **args)
     ff = f0+2*eps
     x = x0[:] 
     xs = []
@@ -77,10 +70,7 @@ def minimize(func, x0, bounds, args=None, eps=0.0000001):
         for dim in range(len(x0)):
             x, cnt = axis_dih(func, dim, x, bounds[dim], cnt, args=args)
             xs.append(x)
-        if args:
-            ff = func(*x, **args)
-        else:
-            ff = func(*x)
+        ff = func(*x, **args)
     return x, ff, xs, cnt
 
 def func_plt(func, path):
@@ -89,9 +79,11 @@ def func_plt(func, path):
     y = np.arange(func['bnds'][1][0], func['bnds'][1][1], delta)
     X, Y = np.meshgrid(x, y)
     if func['args']:
-        Z = func['func'](X, Y, **func['args'])
+        args = func['args']
     else:
-        Z = func['func'](X, Y)
+        args = {}
+    Z = func['func'](X, Y, **args)
+    
     plt.figure()
     lc = -2*abs(func['rv'][2])/(func['rv'][0] - func['rv'][1])
     cs = plt.contour(X, Y, Z, 
@@ -151,7 +143,7 @@ def main():
             'args': None, 
             'bnds': [(-10.0, 10.0), (-10.0, 10.0)], 
             'rv': [10, -2, -2],
-            'init': [1, 1]
+            'init': [8, 8]
         }
     ]
     
