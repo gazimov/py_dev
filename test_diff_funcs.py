@@ -7,7 +7,7 @@ matplotlib.rcParams['ytick.direction'] = 'out'
 matplotlib.rcParams['figure.figsize'] = 12, 12
 matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
 
-def axis_dih(func, dim, x0, bounds, args=None, eps=0.001):
+def axis_dih(func, dim, x0, bounds, cntr, args=None, eps=0.001):
     """ Реализует метод поиска минимума вдоль одной координаты методом дихотомии.
     
     Keyword args:
@@ -25,6 +25,7 @@ def axis_dih(func, dim, x0, bounds, args=None, eps=0.001):
     y1, y2 = bounds
     x = x0[:]
     while abs(y1-y2)>2*eps:
+        cntr += 1
         s = (y1+y2)/2
         x[dim] = s - eps
         if args:
@@ -43,7 +44,7 @@ def axis_dih(func, dim, x0, bounds, args=None, eps=0.001):
         else:
             y2 = s
     x[dim] = (y1 + y2)/2
-    return x
+    return x, cntr
         
 def minimize(func, x0, bounds, args=None, eps=0.0000001):
     """ Реализует метод поиска минимума покоординатным спуском.
@@ -73,9 +74,8 @@ def minimize(func, x0, bounds, args=None, eps=0.0000001):
     xs.append(x)
     while abs(f0 - ff) > eps:
         f0 = ff
-        cnt += 1
         for dim in range(len(x0)):
-            x = axis_dih(func, dim, x, bounds[dim], args=args)
+            x, cnt = axis_dih(func, dim, x, bounds[dim], cnt, args=args)
             xs.append(x)
         if args:
             ff = func(*x, **args)
