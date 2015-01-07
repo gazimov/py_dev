@@ -21,17 +21,12 @@ def grd(func, x0, args=None, dx=0.001):
     Returns:
     Список с частными производными x[dim]
     """
+    if not args: args = {}
     dfx = x0[:]
-    if args:
-        f0 = func(*x0, **args)
-    else:
-        f0 = func(*x0)
+    f0 = func(*x0, **args)
     for dim in range(len(x0)):
         x0[dim] += dx
-        if args:
-            f1 = func(*x0, **args)
-        else:
-            f1 = func(*x0)
+        f1 = func(*x0, **args)
         dfx[dim] = (f1 - f0)/dx
     return dfx
 
@@ -50,14 +45,12 @@ def minimize(func, x0, params, args=None, eps=0.0000001):
     Кортеж из трех элементов: найденное минимизирующее значение аргументов в 
     виде списка, траектория поиска, и количество итераций
     """
+    if not args: args = {}    
     cnt = 0
     df = [1, 1]
     k = params[:]
     x = x0[:]
-    if args:
-        f0 = func(*x, **args)
-    else:
-        f0 = func(*x)
+    f0 = func(*x, **args)
     ff = f0+2*eps
     xs = []
     xs.append(x[:])
@@ -73,10 +66,7 @@ def minimize(func, x0, params, args=None, eps=0.0000001):
             x[dim] -= k[dim]*df[dim]
 
         xs.append(x[:])
-        if args:
-            ff = func(*x, **args)
-        else:
-            ff = func(*x)
+        ff = func(*x, **args)
     return x, ff, xs, cnt
 
 def func_plt(func, path):
