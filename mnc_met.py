@@ -7,93 +7,103 @@ matplotlib.rcParams['ytick.direction'] = 'out'
 matplotlib.rcParams['figure.figsize'] = 12, 12
 matplotlib.rcParams['contour.negative_linestyle'] = 'solid'
 
-def axis_dih(func, dim, x0, bounds, cntr, args=None, eps=0.001):
-    """ Реализует метод поиска минимума вдоль одной координаты методом дихотомии.
+def minimize(func, rv, bounds, args=None, eps=0.0000001):
+    """ Реализует метод поиска минимума наискорейшим спуском.
     
     Keyword args:
     func --- целевая функция, задается функцией или callable объектом
-    dim --- индекс координаты, по которой минимизируется func
-    x0 --- начальное значение кординат в виде списка
-    bounds --- границы поиска по каждой координате с индексом dim 
-    args --- дополнительные параметры целевой функции, словарь 
-    {'имя_парамтера':значение}
-    eps --- точность поиска
-    
-    Returns:
-    Список с обновленной координатой x[dim]
-    """
-    y1, y2 = bounds
-    x = x0[:]
-    if not args: args = {}
-    while abs(y1-y2)>2*eps:
-        cntr += 1
-        s = (y1+y2)/2
-        x[dim] = s - eps
-        f1 = func(*x, **args)
-        x[dim] = s + eps
-        f2 = func(*x, **args)
-        if (f1>f2):
-            y1 = s
-        else:
-            y2 = s
-    x[dim] = (y1 + y2)/2
-    return x, cntr
-        
-def minimize(func, x0, bounds, args=None, eps=0.0000001):
-    """ Реализует метод поиска минимума покоординатным спуском.
-    
-    Keyword args:
-    func --- целевая функция, задается функцией или callable объектом
-    dims --- размерность функции
     x0 --- начальное значение кординат, список размера dims
-    bounds --- границы поиска по каждой координате, список кортежей размера dims, 
-    каждый кортеж --- пара значений, верхняя и нижняя граница
+    params --- параматры поиска - начальные значения шаговых коэффициентов k
     args --- дополнительные параметры целевой функции, словарь 
     {'имя_парамтера':значение}
     eps --- точность поиска
     
     Returns:
-    Кортеж из трех элементов: найденное минимизирующее значение аргументов в виде списка 
-    размером dims, траектория поиска, и количество итераций
+    Кортеж из трех элементов: найденное минимизирующее значение аргументов в 
+    виде списка, траектория поиска, и количество итераций
     """
+    if not args: args = {}    
     cnt = 0
-    if not args: args = {}
-    f0 = func(*x0, **args)
-    ff = f0+2*eps
-    x = x0[:] 
-    xs = []
-    xs.append(x)
-    while abs(f0 - ff) > eps:
-        f0 = ff
-        for dim in range(len(x0)):
-            x, cnt = axis_dih(func, dim, x, bounds[dim], cnt, args=args)
-            xs.append(x)
-        ff = func(*x, **args)
-    return x, ff, xs, cnt
-
-def func_plt(func, path):
-    delta = 0.025
-    x = np.arange(func['bnds'][0][0], func['bnds'][0][1], delta)
-    y = np.arange(func['bnds'][1][0], func['bnds'][1][1], delta)
-    X, Y = np.meshgrid(x, y)
-    if func['args']:
-        args = func['args']
-    else:
-        args = {}
-    Z = func['func'](X, Y, **args)
+    x = [0,0]
     
+    N = 1000
+    M = 50
+    L = int(N/M)
+    dx = 2    
+    
+    pp = np.zeros((N,3))
+    pb = np.zeros((M,3))
+    
+    pp[:,0] = np.random.uniform(bounds[0][0],bounds[0][1],N)
+    pp[:,1] = np.random.uniform(bounds[1][0],bounds[1][1],N)
+    pp[:,2] = func(pp[:,0], pp[:,1], **args)
+    
+    func_plt(func = func, 
+             bounds = bounds, 
+             args =args, 
+             rv = rv, 
+             px = pp[:,0],
+             py = pp[:,1],
+             cnt = cnt) 
+ 
+    pp = pp[np.argsort(pp[:,2])]
+    for i in range(M):
+        pb[i,:] = pp[i,:]
+    
+    f0 = pp[0,2]
+    ff = f0+2*eps
+    
+    while abs(f0 - ff) > eps:
+        cnt += 1
+        f0 = ff
+        
+        for i in range(M):
+            x[0] = pb[i,0]
+            x[1] = pb[i,1]
+            for j in range(L):
+                k = L*i+j
+                pp[k,0] = np.random.uniform(x[0]-dx,x[0]+dx)
+                pp[k,1] = np.random.uniform(x[1]-dx,x[1]+dx)
+                pp[k,2] = func(pp[k,0], pp[k,1], **args)
+        
+        pp = pp[np.argsort(pp[:,2])]
+        for i in range(M):
+            pb[i,:] = pp[i,:]
+        ff = pp[0,2]
+        dx = dx/5
+        
+        func_plt(func = func, 
+             bounds = bounds, 
+             args =args, 
+             rv = rv, 
+             px = pp[:,0],
+             py = pp[:,1],
+             cnt = cnt) 
+    
+    x[0] = pp[0,0]
+    x[1] = pp[0,1]
+    
+    
+    return x, ff, cnt
+
+def func_plt(func, bounds, args, rv, px, py, cnt):
+    delta = 0.025
+    x = np.arange(bounds[0][0], bounds[0][1], delta)
+    y = np.arange(bounds[1][0], bounds[1][1], delta)
+    X, Y = np.meshgrid(x, y)
+    if not args: args = {}
+    Z = func(X,Y, **args)    
     plt.figure()
-    lc = -2*abs(func['rv'][2])/(func['rv'][0] - func['rv'][1])
+    lc = -2*abs(rv[2])/(rv[0] - rv[1])
     cs = plt.contour(X, Y, Z, 
-                     levels = np.arange(func['rv'][0], func['rv'][1], func['rv'][2]), 
+                     levels = np.arange(rv[0], rv[1], rv[2]), 
                      linewidths = np.arange(2.1, 0.1, lc), 
                      colors = 'k')
     plt.clabel(cs, inline=1, fontsize=7)
 
-    path = np.array(path).T
-    plt.plot(path[0], path[1],'b-',linewidth=2)
+    plt.scatter(px, py, s=10, c='r', alpha=0.5)
     plt.grid(True)
-    plt.title('Coordinatewise descent')
+    plt.title("Monte Carlo (step # {val})".format(val=cnt))
     plt.show()
 
 def main():  
@@ -141,7 +151,7 @@ def main():
             'args': None, 
             'bnds': [(-10.0, 10.0), (-10.0, 10.0)], 
             'rv': [10, -2, -2],
-            'init': [8, 8]
+            'init': [1, 1]
         }
     ]
     
@@ -155,12 +165,11 @@ def main():
         print("Превышен индекс, доступны от {0} до {1}".format(0, len(fncs)-1))
         return -1
     
-    args_min, min_func, path, cnt  = minimize(func = fncs[ind]['func'], 
-                                              x0 = fncs[ind]['init'], 
+    args_min, min_func, cnt  = minimize(func = fncs[ind]['func'], 
+                                              rv = fncs[ind]['rv'], 
                                               bounds = fncs[ind]['bnds'],
                                               args = fncs[ind]['args'])    
     
-    func_plt(func=fncs[ind], path=path) 
     print("min = {val}, argmin(f) = {args}, iterations = {i}".format(val=min_func,
                                                                      args=args_min, 
                                                                      i=cnt))  

@@ -116,7 +116,7 @@ def main():
             'args': {'verts': [(5,3),(7,5),(15,15)]}, 
             'bnds': [(0.0, 20.0), (0.0, 20.0)], 
             'rv': [0,-1.2,-0.05],
-            'init': [10, 1]
+            'init': [10, 10]
         },
         {
             'func': fx2, 
@@ -156,10 +156,11 @@ def main():
                                               params = [5,3],
                                               args = fncs[ind]['args'])    
     
+    func_plt(func=fncs[ind], path=path) 
     print("min = {val}, argmin(f) = {args}, iterations = {i}".format(val=min_func,
                                                                      args=args_min, 
                                                                      i=cnt))
-    func_plt(func=fncs[ind], path=path)   
+      
     return 0
 
 if __name__ == "__main__":
