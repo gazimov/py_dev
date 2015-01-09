@@ -73,16 +73,15 @@ def minimize(func, rv, bounds, args=None, eps=0.0000001):
         dx = dx/5
         
         func_plt(func = func, 
-             bounds = bounds, 
-             args =args, 
-             rv = rv, 
-             px = pp[:,0],
-             py = pp[:,1],
-             cnt = cnt) 
+                 bounds = bounds, 
+                 args =args, 
+                 rv = rv, 
+                 px = pp[:,0],
+                 py = pp[:,1],
+                 cnt = cnt) 
     
     x[0] = pp[0,0]
-    x[1] = pp[0,1]
-    
+    x[1] = pp[0,1] 
     
     return x, ff, cnt
 
