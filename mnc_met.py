@@ -38,13 +38,14 @@ def minimize(func, rv, bounds, args=None, eps=0.0000001):
     pp[:,1] = np.random.uniform(bounds[1][0],bounds[1][1],N)
     pp[:,2] = func(pp[:,0], pp[:,1], **args)
     
-    func_plt(func = func, 
+    func_plt(func = func,
+             rv = rv,
              bounds = bounds, 
-             args =args, 
-             rv = rv, 
+             args =args,  
              px = pp[:,0],
              py = pp[:,1],
-             cnt = cnt) 
+             cnt = cnt,
+             met = 1) 
  
     pp = pp[np.argsort(pp[:,2])]
     for i in range(M):
@@ -72,20 +73,21 @@ def minimize(func, rv, bounds, args=None, eps=0.0000001):
         ff = pp[0,2]
         dx = dx/5
         
-        func_plt(func = func, 
+        func_plt(func = func,
+                 rv = rv,
                  bounds = bounds, 
-                 args =args, 
-                 rv = rv, 
+                 args = args, 
                  px = pp[:,0],
                  py = pp[:,1],
-                 cnt = cnt) 
+                 cnt = cnt,
+                 met = 1) 
     
     x[0] = pp[0,0]
     x[1] = pp[0,1] 
     
     return x, ff, cnt
 
-def func_plt(func, bounds, args, rv, px, py, cnt):
+def func_plt(func, rv, bounds, args, px, py, cnt, met):
     delta = 0.025
     x = np.arange(bounds[0][0], bounds[0][1], delta)
     y = np.arange(bounds[1][0], bounds[1][1], delta)
@@ -100,7 +102,11 @@ def func_plt(func, bounds, args, rv, px, py, cnt):
                      colors = 'k')
     plt.clabel(cs, inline=1, fontsize=7)
 
-    plt.scatter(px, py, s=10, c='r', alpha=0.5)
+    if met == 1:
+        plt.scatter(px, py, s=10, c='r', alpha=0.5)
+    elif met == 0:
+        plt.plot(px, py,'b-',linewidth=2)
+        
     plt.grid(True)
     plt.title("Monte Carlo (step # {val})".format(val=cnt))
     plt.show()
@@ -165,9 +171,9 @@ def main():
         return -1
     
     args_min, min_func, cnt  = minimize(func = fncs[ind]['func'], 
-                                              rv = fncs[ind]['rv'], 
-                                              bounds = fncs[ind]['bnds'],
-                                              args = fncs[ind]['args'])    
+                                        rv = fncs[ind]['rv'], 
+                                        bounds = fncs[ind]['bnds'],
+                                        args = fncs[ind]['args'])    
     
     print("min = {val}, argmin(f) = {args}, iterations = {i}".format(val=min_func,
                                                                      args=args_min, 
