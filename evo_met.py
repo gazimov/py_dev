@@ -15,18 +15,18 @@ def setbit(n, i, st):
     if (st): return n | (1<<i)
     else: return n & ~(1<<i)
 # функция получения массива битов (генетического кода) координаты
-def gencode(nmb):
-    n = np.uint32(100000000*nmb)
+def gencode(nmb, bnd):
+    n = np.uint32((nmb-bnd[0])*(np.iinfo(np.uint32).max/(bnd[1]-bnd[0])))
     x = np.zeros((32, 1), dtype=bool)
     for i in range(32):
         x[i] = getbit(n, i)
     return x
 # функция получения координаты из ее генетического кода 
-def fencode(gc):
+def fencode(gc, bnd):
     n = 0
     for i in range(32):
         n = setbit(n, i, gc[i])
-    return n/100000000
+    return bnd[0] + n/(np.iinfo(np.uint32).max/(bnd[1]-bnd[0]))
 # функция скрещивания двух координат и мутации их потомка
 def crossmut(gc1, gc2, mf):
     cp = np.random.uniform(0,1,32)
@@ -89,22 +89,18 @@ def minimize(func, rv, bounds, args=None, eps=0.0000001):
         f0 = ff
         
         for i in range(M):
-            px1 = gencode(pb[i,0] - bounds[0][0])
-            px2 = gencode(pb[i,1] - bounds[1][0])
+            px1 = gencode(pb[i,0],bounds[0])
+            px2 = gencode(pb[i,1],bounds[1])
             
             for j in range(L):
-                fl = 0
-                while fl == 0:
-                    ind = np.random.randint(M-1)
-                    mx1 = gencode(pb[ind,0] - bounds[0][0])
-                    mx2 = gencode(pb[ind,1] - bounds[1][0])
-                    cx1 = crossmut(px1,mx1,0.05)
-                    cx2 = crossmut(px2,mx2,0.05)
-                    k = L*i+j
-                    pp[k,0] = bounds[0][0] + fencode(cx1)
-                    pp[k,1] = bounds[1][0] + fencode(cx2)
-                    if (pp[k,0] > bounds[0][0]) and (pp[k,0] < bounds[0][1]) and (pp[k,1] > bounds[1][0]) and (pp[k,1] < bounds[1][1]):
-                        fl = 1
+                ind = np.random.randint(M)
+                mx1 = gencode(pb[ind,0],bounds[0])
+                mx2 = gencode(pb[ind,1],bounds[1])
+                cx1 = crossmut(px1,mx1,0.05)
+                cx2 = crossmut(px2,mx2,0.05)
+                k = L*i+j
+                pp[k,0] = fencode(cx1,bounds[0])
+                pp[k,1] = fencode(cx2,bounds[1])
                 pp[k,2] = func(pp[k,0], pp[k,1], **args)
         
         pp = pp[np.argsort(pp[:,2])]
